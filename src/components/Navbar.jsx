@@ -1,209 +1,93 @@
-import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, Container, Button, Box, IconButton, Drawer, List, ListItem, ListItemButton, ListItemText, useScrollTrigger } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
-import DXHLogo from '../assets/DXH_logo.png';
+import { useEffect, useState } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import DXHLogo from "../assets/DXH_logo.png";
+import { ChevronDown, Menu, Close } from "./Icons";
 
-const StyledAppBar = styled(AppBar, {
-  shouldForwardProp: (prop) => prop !== 'scrolled',
-})(({ theme, scrolled }) => ({
-  backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.72)' : 'transparent',
-  backdropFilter: scrolled ? 'saturate(180%) blur(20px)' : 'none',
-  WebkitBackdropFilter: scrolled ? 'saturate(180%) blur(20px)' : 'none',
-  boxShadow: scrolled ? '0 1px 0 rgba(0, 0, 0, 0.1)' : 'none',
-  padding: scrolled ? '8px 0' : '16px 0',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  color: '#1d1d1f',
-}));
+const products = [
+  { name: "AppreLab", desc: "Learn, work on real projects, earn", to: "/#apprelab" },
+  { name: "WorkLab", desc: "Paid projects with milestone payments", to: "/worklab" },
+  { name: "Incubation programs", desc: "Talent, platform and product incubation", to: "/products" },
+];
 
-const NavButton = styled(Button)(({ theme }) => ({
-  color: '#1d1d1f',
-  fontWeight: 500,
-  fontSize: '0.95rem',
-  textTransform: 'none',
-  marginLeft: theme.spacing(1),
-  marginRight: theme.spacing(1),
-  opacity: 0.8,
-  transition: 'opacity 0.2s ease',
-  '&:hover': {
-    opacity: 1,
-    backgroundColor: 'transparent',
-  },
-}));
+const links = [
+  { label: "Solutions", to: "/solutions" },
+  { label: "Success Stories", to: "/stories" },
+  { label: "Resources", to: "/resources" },
+  { label: "Pricing", to: "/pricing" },
+];
 
-const ActionButton = styled(Button)(({ theme }) => ({
-  marginLeft: theme.spacing(2),
-  textTransform: 'none',
-  fontWeight: 600,
-  borderRadius: '20px',
-  padding: '6px 16px',
-  fontSize: '0.9rem',
-}));
+const navClass = ({ isActive }) => `nav__link ${isActive ? "is-active" : ""}`;
 
 const Navbar = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const location = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const toggleDrawer = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  useEffect(() => setOpen(false), [pathname, hash]);
 
-  const navLinks = [
-    { name: 'Products', path: '/products' },
-    { name: 'Solutions', path: '/solutions' },
-    { name: 'Resources', path: '/resources' },
-    { name: 'Pricing', path: '/pricing' },
-  ];
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
   return (
-    <>
-      <StyledAppBar scrolled={scrolled} position="fixed">
-        <Container maxWidth="lg">
-          <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
-            
-            {/* Logo */}
-            <Box 
-              component={RouterLink} 
-              to="/" 
-              sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
-            >
-              <Box component="img" src={DXHLogo} alt="DXH Logo" sx={{ height: { xs: 32, md: 40 } }} />
-            </Box>
+    <header className={`nav ${scrolled ? "nav--scrolled" : ""}`}>
+      <div className="nav__inner">
+        <Link to="/" className="nav__brand" aria-label="DX Innovation Hub home">
+          <img src={DXHLogo} alt="" />
+          <span className="nav__tag">/ Innovation Hub</span>
+        </Link>
 
-            {/* Desktop Navigation links */}
-            <Box sx={{ display: { xs: 'none', md: 'flex' }, flexGrow: 1, justifyContent: 'center' }}>
-              {navLinks.map((link) => (
-                <NavButton 
-                  key={link.name} 
-                  component={RouterLink} 
-                  to={link.path}
-                  sx={{ 
-                    opacity: location.pathname === link.path ? 1 : 0.8,
-                    fontWeight: location.pathname === link.path ? 600 : 500
-                  }}
-                >
-                  {link.name}
-                </NavButton>
+        <nav className="nav__links" aria-label="Primary">
+          <div className="nav__dropdown">
+            <NavLink to="/products" className={navClass} aria-haspopup="true">
+              Products <ChevronDown width={16} height={16} />
+            </NavLink>
+            <div className="nav__menu">
+              {products.map((p) => (
+                <Link key={p.name} to={p.to}>
+                  <strong>{p.name}</strong>
+                  <span>{p.desc}</span>
+                </Link>
               ))}
-            </Box>
-            
-            {/* Desktop Action buttons */}
-            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
-              <Button 
-                variant="text" 
-                sx={{ 
-                  color: '#1d1d1f', 
-                  textTransform: 'none', 
-                  fontWeight: 500,
-                  mr: 2
-                }}
-              >
-                Sign in
-              </Button>
-              <ActionButton 
-                component={RouterLink}
-                to="/contact"
-                variant="outlined" 
-                sx={{ 
-                  borderColor: 'primary.main', 
-                  color: 'primary.main',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 29, 110, 0.05)',
-                    borderColor: 'primary.main',
-                  }
-                }}
-              >
-                Contact us
-              </ActionButton>
-              <ActionButton 
-                variant="contained" 
-                color="primary"
-              >
-                Get started
-              </ActionButton>
-            </Box>
+            </div>
+          </div>
+          {links.map((l) => (
+            <NavLink key={l.to} to={l.to} className={navClass}>{l.label}</NavLink>
+          ))}
+        </nav>
 
-            {/* Mobile Menu Toggle */}
-            <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center' }}>
-              <IconButton
-                onClick={toggleDrawer}
-                sx={{ color: '#1d1d1f' }}
-              >
-                <MenuIcon />
-              </IconButton>
-            </Box>
-          </Toolbar>
-        </Container>
-      </StyledAppBar>
+        <div className="nav__actions">
+          <NavLink to="/contact" className={navClass}>Contact Us</NavLink>
+          <Link to="/pricing" className="btn btn--dark btn--sm">Get Started</Link>
+        </div>
 
-      {/* Mobile Drawer */}
-      <Drawer
-        anchor="right"
-        open={mobileOpen}
-        onClose={toggleDrawer}
-        PaperProps={{
-          sx: { 
-            width: '100%', 
-            maxWidth: 300,
-            backgroundColor: 'rgba(255, 255, 255, 0.98)',
-            backdropFilter: 'blur(10px)'
-          },
-        }}
-      >
-        <Box sx={{ width: '100%', p: 3, pt: 8 }}>
-          <List>
-            {navLinks.map((link) => (
-              <ListItem key={link.name} disablePadding sx={{ mb: 1 }}>
-                <ListItemButton 
-                  component={RouterLink} 
-                  to={link.path} 
-                  onClick={toggleDrawer}
-                  sx={{ borderRadius: '12px' }}
-                >
-                  <ListItemText 
-                    primary={link.name} 
-                    primaryTypographyProps={{ 
-                      fontSize: '1.2rem', 
-                      fontWeight: location.pathname === link.path ? 700 : 500 
-                    }} 
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-            <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Button 
-                fullWidth 
-                variant="outlined" 
-                component={RouterLink}
-                to="/contact"
-                onClick={toggleDrawer}
-              >
-                Contact us
-              </Button>
-              <Button 
-                fullWidth 
-                variant="contained" 
-                onClick={toggleDrawer}
-              >
-                Get started
-              </Button>
-            </Box>
-          </List>
-        </Box>
-      </Drawer>
-      {/* Spacer to prevent content from going under the fixed AppBar */}
-      <Box sx={{ height: scrolled ? '64px' : '80px', transition: 'height 0.3s' }} />
-    </>
+        <button
+          className="nav__toggle"
+          onClick={() => setOpen(!open)}
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
+        >
+          {open ? <Close /> : <Menu />}
+        </button>
+      </div>
+
+      <div className={`nav__sheet ${open ? "is-open" : ""}`}>
+        <p className="nav__sheet-label">Products</p>
+        {products.map((p) => <Link key={p.name} to={p.to}>{p.name}</Link>)}
+        <hr />
+        {links.map((l) => <Link key={l.to} to={l.to}>{l.label}</Link>)}
+        <Link to="/contact">Contact Us</Link>
+        <Link to="/pricing" className="btn btn--dark">Get Started</Link>
+      </div>
+    </header>
   );
 };
 

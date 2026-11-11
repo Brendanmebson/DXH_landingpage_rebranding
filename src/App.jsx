@@ -1,15 +1,16 @@
-import { ThemeProvider, CssBaseline, Box, GlobalStyles } from "@mui/material";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import theme from "./theme";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import ScrollToTop from "./components/ScrollToTop";
 import Hero from "./components/Hero";
+import Marquee from "./components/Marquee";
 import AboutUs from "./components/AboutUs";
 import WhatWeDo from "./components/WhatWeDo";
 import AppreLab from "./components/AppreLab";
 import WhyChooseDX from "./components/WhyChooseDX";
 import Testimonials from "./components/Testimonials";
-import Footer from "./components/Footer";
 import CTA from "./components/CTA";
 
 import Products from "./pages/Products";
@@ -23,25 +24,12 @@ import SuccessStories from "./pages/SuccessStories";
 import WorkLab from "./pages/WorkLab";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
-
-import ScrollToTop from "./components/ScrollToTop";
-
-// Page Wrapper for transitions
-const PageWrapper = ({ children }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-    style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}
-  >
-    {children}
-  </motion.div>
-);
+import NotFound from "./pages/NotFound";
 
 const Home = () => (
   <>
     <Hero />
+    <Marquee />
     <AboutUs />
     <WhatWeDo />
     <AppreLab />
@@ -51,70 +39,60 @@ const Home = () => (
   </>
 );
 
-function AppContent() {
-  const location = useLocation();
-  
+const routes = [
+  ["/", Home],
+  ["/products", Products],
+  ["/solutions", Solutions],
+  ["/resources", Resources],
+  ["/pricing", Pricing],
+  ["/contact", Contact],
+  ["/about", About],
+  ["/team", Team],
+  ["/stories", SuccessStories],
+  ["/worklab", WorkLab],
+  ["/privacy", Privacy],
+  ["/terms", Terms],
+];
+
+const Page = ({ children }) => {
+  const reduce = useReducedMotion();
   return (
-    <Box sx={{ 
-      width: '100vw', 
-      maxWidth: '100%', 
-      overflowX: 'hidden',
-      margin: 0,
-      padding: 0,
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduce ? undefined : { opacity: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const Shell = () => {
+  const location = useLocation();
+  return (
+    <div className="page">
       <ScrollToTop />
       <Navbar />
-      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <main>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
-            <Route path="/products" element={<PageWrapper><Products /></PageWrapper>} />
-            <Route path="/solutions" element={<PageWrapper><Solutions /></PageWrapper>} />
-            <Route path="/resources" element={<PageWrapper><Resources /></PageWrapper>} />
-            <Route path="/pricing" element={<PageWrapper><Pricing /></PageWrapper>} />
-            <Route path="/contact" element={<PageWrapper><Contact /></PageWrapper>} />
-            <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
-            <Route path="/team" element={<PageWrapper><Team /></PageWrapper>} />
-            <Route path="/stories" element={<PageWrapper><SuccessStories /></PageWrapper>} />
-            <Route path="/worklab" element={<PageWrapper><WorkLab /></PageWrapper>} />
-            <Route path="/privacy" element={<PageWrapper><Privacy /></PageWrapper>} />
-            <Route path="/terms" element={<PageWrapper><Terms /></PageWrapper>} />
+            {routes.map(([path, Component]) => (
+              <Route key={path} path={path} element={<Page><Component /></Page>} />
+            ))}
+            <Route path="*" element={<Page><NotFound /></Page>} />
           </Routes>
         </AnimatePresence>
-      </Box>
+      </main>
       <Footer />
-    </Box>
+    </div>
   );
-}
+};
 
-function App() {
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <GlobalStyles 
-        styles={{
-          'body': {
-            margin: 0,
-            padding: 0,
-            overflowX: 'hidden',
-            width: '100vw',
-            maxWidth: '100%',
-          },
-          '#root': {
-            width: '100%',
-            maxWidth: '100%',
-            overflowX: 'hidden',
-          }
-        }} 
-      />
-      <Router>
-        <AppContent />
-      </Router>
-    </ThemeProvider>
-  );
-}
+const App = () => (
+  <BrowserRouter>
+    <Shell />
+  </BrowserRouter>
+);
 
 export default App;
